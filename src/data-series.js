@@ -1,4 +1,6 @@
 import { jvm } from './jvectormap'
+import Legend from './legend'
+import { OrdinalScale, SimpleScale, NumericScale, ColorScale } from './scales'
 
 /**
  * Creates data series.
@@ -11,44 +13,44 @@ import { jvm } from './jvectormap'
  * @param {Number} params.min Minimum value of the data set. Could be calculated automatically if not provided.
  * @param {Number} params.min Maximum value of the data set. Could be calculated automatically if not provided.
  */
-jvm.DataSeries = function (params, elements, map) {
-  var scaleConstructor
+export default class DataSeries {
+  constructor (params, elements, map) {
+    var ScaleConstructor
 
-  params = params || {}
-  params.attribute = params.attribute || 'fill'
+    params = params || {}
+    params.attribute = params.attribute || 'fill'
 
-  this.elements = elements
-  this.params = params
-  this.map = map
+    this.elements = elements
+    this.params = params
+    this.map = map
 
-  if (params.attributes) {
-    this.setAttributes(params.attributes)
+    if (params.attributes) {
+      this.setAttributes(params.attributes)
+    }
+
+    if (jvm.$.isArray(params.scale)) {
+      ScaleConstructor = (params.attribute === 'fill' || params.attribute === 'stroke') ? ColorScale : NumericScale
+      this.scale = new ScaleConstructor(params.scale, params.normalizeFunction, params.min, params.max)
+    } else if (params.scale) {
+      this.scale = new OrdinalScale(params.scale)
+    } else {
+      this.scale = new SimpleScale(params.scale)
+    }
+
+    this.values = params.values || {}
+    this.setValues(this.values)
+
+    if (this.params.legend) {
+      this.legend = new Legend(jvm.$.extend({
+        map: this.map,
+        series: this
+      }, this.params.legend))
+    }
   }
 
-  if (jvm.$.isArray(params.scale)) {
-    scaleConstructor = (params.attribute === 'fill' || params.attribute === 'stroke') ? jvm.ColorScale : jvm.NumericScale
-    this.scale = new scaleConstructor(params.scale, params.normalizeFunction, params.min, params.max)
-  } else if (params.scale) {
-    this.scale = new jvm.OrdinalScale(params.scale)
-  } else {
-    this.scale = new jvm.SimpleScale(params.scale)
-  }
-
-  this.values = params.values || {}
-  this.setValues(this.values)
-
-  if (this.params.legend) {
-    this.legend = new jvm.Legend($.extend({
-      map: this.map,
-      series: this
-    }, this.params.legend))
-  }
-}
-
-jvm.DataSeries.prototype = {
-  setAttributes: function (key, attr) {
-    var attrs = key,
-      code
+  setAttributes (key, attr) {
+    var attrs = key
+    var code
 
     if (typeof key === 'string') {
       if (this.elements[key]) {
@@ -61,20 +63,20 @@ jvm.DataSeries.prototype = {
         }
       }
     }
-  },
+  }
 
   /**
    * Set values for the data set.
    * @param {Object} values Object which maps codes of regions or markers to values.
    */
-  setValues: function (values) {
-    var max = -Number.MAX_VALUE,
-      min = Number.MAX_VALUE,
-      val,
-      cc,
-      attrs = {}
+  setValues (values) {
+    var max = -Number.MAX_VALUE
+    var min = Number.MAX_VALUE
+    var val
+    var cc
+    var attrs = {}
 
-    if (!(this.scale instanceof jvm.OrdinalScale) && !(this.scale instanceof jvm.SimpleScale)) {
+    if (!(this.scale instanceof OrdinalScale) && !(this.scale instanceof SimpleScale)) {
       // we have a color scale as an array
       if (typeof this.params.min === 'undefined' || typeof this.params.max === 'undefined') {
         // min and/or max are not defined, so calculate them
@@ -121,11 +123,11 @@ jvm.DataSeries.prototype = {
 
     this.setAttributes(attrs)
     jvm.$.extend(this.values, values)
-  },
+  }
 
-  clear: function () {
-    var key,
-      attrs = {}
+  clear () {
+    var key
+    var attrs = {}
 
     for (key in this.values) {
       if (this.elements[key]) {
@@ -134,24 +136,24 @@ jvm.DataSeries.prototype = {
     }
     this.setAttributes(attrs)
     this.values = {}
-  },
+  }
 
   /**
    * Set scale of the data series.
    * @param {Array} scale Values representing scale.
    */
-  setScale: function (scale) {
+  setScale (scale) {
     this.scale.setScale(scale)
     if (this.values) {
       this.setValues(this.values)
     }
-  },
+  }
 
   /**
    * Set normalize function of the data series.
    * @param {Function|String} normilizeFunction.
    */
-  setNormalizeFunction: function (f) {
+  setNormalizeFunction (f) {
     this.scale.setNormalizeFunction(f)
     if (this.values) {
       this.setValues(this.values)

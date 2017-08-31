@@ -1,226 +1,233 @@
+import jQuery from 'jquery'
+import Region from './region'
+import Marker from './marker'
+import DataSeries from './data-series'
+import Proj from './proj'
+
 import { jvm } from './jvectormap'
+import './abstract'
+import './svg'
 
-/**
- * Creates map, draws paths, binds events.
- * @constructor
- * @param {Object} params Parameters to initialize map with.
- * @param {String} params.map Name of the map in the format <code>territory_proj_lang</code> where <code>territory</code> is a unique code or name of the territory which the map represents (ISO 3166 standard is used where possible), <code>proj</code> is a name of projection used to generate representation of the map on the plane (projections are named according to the conventions of proj4 utility) and <code>lang</code> is a code of the language, used for the names of regions.
- * @param {String} params.backgroundColor Background color of the map in CSS format.
- * @param {Boolean} params.zoomOnScroll When set to true map could be zoomed using mouse scroll. Default value is <code>true</code>.
- * @param {Boolean} params.zoomOnScrollSpeed Mouse scroll speed. Number from 1 to 10. Default value is <code>3</code>.
- * @param {Boolean} params.panOnDrag When set to true, the map pans when being dragged. Default value is <code>true</code>.
- * @param {Number} params.zoomMax Indicates the maximum zoom ratio which could be reached zooming the map. Default value is <code>8</code>.
- * @param {Number} params.zoomMin Indicates the minimum zoom ratio which could be reached zooming the map. Default value is <code>1</code>.
- * @param {Number} params.zoomStep Indicates the multiplier used to zoom map with +/- buttons. Default value is <code>1.6</code>.
- * @param {Boolean} params.zoomAnimate Indicates whether or not to animate changing of map zoom with zoom buttons.
- * @param {Boolean} params.regionsSelectable When set to true regions of the map could be selected. Default value is <code>false</code>.
- * @param {Boolean} params.regionsSelectableOne Allow only one region to be selected at the moment. Default value is <code>false</code>.
- * @param {Boolean} params.markersSelectable When set to true markers on the map could be selected. Default value is <code>false</code>.
- * @param {Boolean} params.markersSelectableOne Allow only one marker to be selected at the moment. Default value is <code>false</code>.
- * @param {Object} params.regionStyle Set the styles for the map's regions. Each region or marker has four states: <code>initial</code> (default state), <code>hover</code> (when the mouse cursor is over the region or marker), <code>selected</code> (when region or marker is selected), <code>selectedHover</code> (when the mouse cursor is over the region or marker and it's selected simultaneously). Styles could be set for each of this states. Default value for that parameter is:
-<pre>{
-  initial: {
-    fill: 'white',
-    "fill-opacity": 1,
-    stroke: 'none',
-    "stroke-width": 0,
-    "stroke-opacity": 1
-  },
-  hover: {
-    "fill-opacity": 0.8,
-    cursor: 'pointer'
-  },
-  selected: {
-    fill: 'yellow'
-  },
-  selectedHover: {
-  }
-}</pre>
-* @param {Object} params.regionLabelStyle Set the styles for the regions' labels. Each region or marker has four states: <code>initial</code> (default state), <code>hover</code> (when the mouse cursor is over the region or marker), <code>selected</code> (when region or marker is selected), <code>selectedHover</code> (when the mouse cursor is over the region or marker and it's selected simultaneously). Styles could be set for each of this states. Default value for that parameter is:
-<pre>{
-  initial: {
-    'font-family': 'Verdana',
-    'font-size': '12',
-    'font-weight': 'bold',
-    cursor: 'default',
-    fill: 'black'
-  },
-  hover: {
-    cursor: 'pointer'
-  }
-}</pre>
- * @param {Object} params.markerStyle Set the styles for the map's markers. Any parameter suitable for <code>regionStyle</code> could be used as well as numeric parameter <code>r</code> to set the marker's radius. Default value for that parameter is:
-<pre>{
-  initial: {
-    fill: 'grey',
-    stroke: '#505050',
-    "fill-opacity": 1,
-    "stroke-width": 1,
-    "stroke-opacity": 1,
-    r: 5
-  },
-  hover: {
-    stroke: 'black',
-    "stroke-width": 2,
-    cursor: 'pointer'
-  },
-  selected: {
-    fill: 'blue'
-  },
-  selectedHover: {
-  }
-}</pre>
- * @param {Object} params.markerLabelStyle Set the styles for the markers' labels. Default value for that parameter is:
-<pre>{
-  initial: {
-    'font-family': 'Verdana',
-    'font-size': '12',
-    'font-weight': 'bold',
-    cursor: 'default',
-    fill: 'black'
-  },
-  hover: {
-    cursor: 'pointer'
-  }
-}</pre>
- * @param {Object|Array} params.markers Set of markers to add to the map during initialization. In case of array is provided, codes of markers will be set as string representations of array indexes. Each marker is represented by <code>latLng</code> (array of two numeric values), <code>name</code> (string which will be show on marker's tip) and any marker styles.
- * @param {Object} params.series Object with two keys: <code>markers</code> and <code>regions</code>. Each of which is an array of series configs to be applied to the respective map elements. See <a href="jvm.DataSeries.html">DataSeries</a> description for a list of parameters available.
- * @param {Object|String} params.focusOn This parameter sets the initial position and scale of the map viewport. See <code>setFocus</code> docuemntation for possible parameters.
- * @param {Object} params.labels Defines parameters for rendering static labels. Object could contain two keys: <code>regions</code> and <code>markers</code>. Each key value defines configuration object with the following possible options:
-<ul>
-  <li><code>render {Function}</code> - defines method for converting region code or marker index to actual label value.</li>
-  <li><code>offsets {Object|Function}</code> - provides method or object which could be used to define label offset by region code or marker index.</li>
-</ul>
-<b>Plase note: static labels feature is not supported in Internet Explorer 8 and below.</b>
- * @param {Array|Object|String} params.selectedRegions Set initially selected regions.
- * @param {Array|Object|String} params.selectedMarkers Set initially selected markers.
- * @param {Function} params.onRegionTipShow <code>(Event e, Object tip, String code)</code> Will be called right before the region tip is going to be shown.
- * @param {Function} params.onRegionOver <code>(Event e, String code)</code> Will be called on region mouse over event.
- * @param {Function} params.onRegionOut <code>(Event e, String code)</code> Will be called on region mouse out event.
- * @param {Function} params.onRegionClick <code>(Event e, String code)</code> Will be called on region click event.
- * @param {Function} params.onRegionSelected <code>(Event e, String code, Boolean isSelected, Array selectedRegions)</code> Will be called when region is (de)selected. <code>isSelected</code> parameter of the callback indicates whether region is selected or not. <code>selectedRegions</code> contains codes of all currently selected regions.
- * @param {Function} params.onMarkerTipShow <code>(Event e, Object tip, String code)</code> Will be called right before the marker tip is going to be shown.
- * @param {Function} params.onMarkerOver <code>(Event e, String code)</code> Will be called on marker mouse over event.
- * @param {Function} params.onMarkerOut <code>(Event e, String code)</code> Will be called on marker mouse out event.
- * @param {Function} params.onMarkerClick <code>(Event e, String code)</code> Will be called on marker click event.
- * @param {Function} params.onMarkerSelected <code>(Event e, String code, Boolean isSelected, Array selectedMarkers)</code> Will be called when marker is (de)selected. <code>isSelected</code> parameter of the callback indicates whether marker is selected or not. <code>selectedMarkers</code> contains codes of all currently selected markers.
- * @param {Function} params.onViewportChange <code>(Event e, Number scale)</code> Triggered when the map's viewport is changed (map was panned or zoomed).
- */
-jvm.Map = function (params) {
-  var map = this
-  var e
+export class Map {
+  /**
+   * Creates map, draws paths, binds events.
+   * @constructor
+   * @param {Object} params Parameters to initialize map with.
+   * @param {String} params.map Name of the map in the format <code>territory_proj_lang</code> where <code>territory</code> is a unique code or name of the territory which the map represents (ISO 3166 standard is used where possible), <code>proj</code> is a name of projection used to generate representation of the map on the plane (projections are named according to the conventions of proj4 utility) and <code>lang</code> is a code of the language, used for the names of regions.
+   * @param {String} params.backgroundColor Background color of the map in CSS format.
+   * @param {Boolean} params.zoomOnScroll When set to true map could be zoomed using mouse scroll. Default value is <code>true</code>.
+   * @param {Boolean} params.zoomOnScrollSpeed Mouse scroll speed. Number from 1 to 10. Default value is <code>3</code>.
+   * @param {Boolean} params.panOnDrag When set to true, the map pans when being dragged. Default value is <code>true</code>.
+   * @param {Number} params.zoomMax Indicates the maximum zoom ratio which could be reached zooming the map. Default value is <code>8</code>.
+   * @param {Number} params.zoomMin Indicates the minimum zoom ratio which could be reached zooming the map. Default value is <code>1</code>.
+   * @param {Number} params.zoomStep Indicates the multiplier used to zoom map with +/- buttons. Default value is <code>1.6</code>.
+   * @param {Boolean} params.zoomAnimate Indicates whether or not to animate changing of map zoom with zoom buttons.
+   * @param {Boolean} params.regionsSelectable When set to true regions of the map could be selected. Default value is <code>false</code>.
+   * @param {Boolean} params.regionsSelectableOne Allow only one region to be selected at the moment. Default value is <code>false</code>.
+   * @param {Boolean} params.markersSelectable When set to true markers on the map could be selected. Default value is <code>false</code>.
+   * @param {Boolean} params.markersSelectableOne Allow only one marker to be selected at the moment. Default value is <code>false</code>.
+   * @param {Object} params.regionStyle Set the styles for the map's regions. Each region or marker has four states: <code>initial</code> (default state), <code>hover</code> (when the mouse cursor is over the region or marker), <code>selected</code> (when region or marker is selected), <code>selectedHover</code> (when the mouse cursor is over the region or marker and it's selected simultaneously). Styles could be set for each of this states. Default value for that parameter is:
+  <pre>{
+    initial: {
+      fill: 'white',
+      "fill-opacity": 1,
+      stroke: 'none',
+      "stroke-width": 0,
+      "stroke-opacity": 1
+    },
+    hover: {
+      "fill-opacity": 0.8,
+      cursor: 'pointer'
+    },
+    selected: {
+      fill: 'yellow'
+    },
+    selectedHover: {
+    }
+  }</pre>
+  * @param {Object} params.regionLabelStyle Set the styles for the regions' labels. Each region or marker has four states: <code>initial</code> (default state), <code>hover</code> (when the mouse cursor is over the region or marker), <code>selected</code> (when region or marker is selected), <code>selectedHover</code> (when the mouse cursor is over the region or marker and it's selected simultaneously). Styles could be set for each of this states. Default value for that parameter is:
+  <pre>{
+    initial: {
+      'font-family': 'Verdana',
+      'font-size': '12',
+      'font-weight': 'bold',
+      cursor: 'default',
+      fill: 'black'
+    },
+    hover: {
+      cursor: 'pointer'
+    }
+  }</pre>
+  * @param {Object} params.markerStyle Set the styles for the map's markers. Any parameter suitable for <code>regionStyle</code> could be used as well as numeric parameter <code>r</code> to set the marker's radius. Default value for that parameter is:
+  <pre>{
+    initial: {
+      fill: 'grey',
+      stroke: '#505050',
+      "fill-opacity": 1,
+      "stroke-width": 1,
+      "stroke-opacity": 1,
+      r: 5
+    },
+    hover: {
+      stroke: 'black',
+      "stroke-width": 2,
+      cursor: 'pointer'
+    },
+    selected: {
+      fill: 'blue'
+    },
+    selectedHover: {
+    }
+  }</pre>
+  * @param {Object} params.markerLabelStyle Set the styles for the markers' labels. Default value for that parameter is:
+  <pre>{
+    initial: {
+      'font-family': 'Verdana',
+      'font-size': '12',
+      'font-weight': 'bold',
+      cursor: 'default',
+      fill: 'black'
+    },
+    hover: {
+      cursor: 'pointer'
+    }
+  }</pre>
+  * @param {Object|Array} params.markers Set of markers to add to the map during initialization. In case of array is provided, codes of markers will be set as string representations of array indexes. Each marker is represented by <code>latLng</code> (array of two numeric values), <code>name</code> (string which will be show on marker's tip) and any marker styles.
+  * @param {Object} params.series Object with two keys: <code>markers</code> and <code>regions</code>. Each of which is an array of series configs to be applied to the respective map elements. See <a href="DataSeries.html">DataSeries</a> description for a list of parameters available.
+  * @param {Object|String} params.focusOn This parameter sets the initial position and scale of the map viewport. See <code>setFocus</code> docuemntation for possible parameters.
+  * @param {Object} params.labels Defines parameters for rendering static labels. Object could contain two keys: <code>regions</code> and <code>markers</code>. Each key value defines configuration object with the following possible options:
+  <ul>
+    <li><code>render {Function}</code> - defines method for converting region code or marker index to actual label value.</li>
+    <li><code>offsets {Object|Function}</code> - provides method or object which could be used to define label offset by region code or marker index.</li>
+  </ul>
+  <b>Plase note: static labels feature is not supported in Internet Explorer 8 and below.</b>
+  * @param {Array|Object|String} params.selectedRegions Set initially selected regions.
+  * @param {Array|Object|String} params.selectedMarkers Set initially selected markers.
+  * @param {Function} params.onRegionTipShow <code>(Event e, Object tip, String code)</code> Will be called right before the region tip is going to be shown.
+  * @param {Function} params.onRegionOver <code>(Event e, String code)</code> Will be called on region mouse over event.
+  * @param {Function} params.onRegionOut <code>(Event e, String code)</code> Will be called on region mouse out event.
+  * @param {Function} params.onRegionClick <code>(Event e, String code)</code> Will be called on region click event.
+  * @param {Function} params.onRegionSelected <code>(Event e, String code, Boolean isSelected, Array selectedRegions)</code> Will be called when region is (de)selected. <code>isSelected</code> parameter of the callback indicates whether region is selected or not. <code>selectedRegions</code> contains codes of all currently selected regions.
+  * @param {Function} params.onMarkerTipShow <code>(Event e, Object tip, String code)</code> Will be called right before the marker tip is going to be shown.
+  * @param {Function} params.onMarkerOver <code>(Event e, String code)</code> Will be called on marker mouse over event.
+  * @param {Function} params.onMarkerOut <code>(Event e, String code)</code> Will be called on marker mouse out event.
+  * @param {Function} params.onMarkerClick <code>(Event e, String code)</code> Will be called on marker click event.
+  * @param {Function} params.onMarkerSelected <code>(Event e, String code, Boolean isSelected, Array selectedMarkers)</code> Will be called when marker is (de)selected. <code>isSelected</code> parameter of the callback indicates whether marker is selected or not. <code>selectedMarkers</code> contains codes of all currently selected markers.
+  * @param {Function} params.onViewportChange <code>(Event e, Number scale)</code> Triggered when the map's viewport is changed (map was panned or zoomed).
+  */
+  constructor (params) {
+    this.transX = 0
+    this.transY = 0
+    this.scale = 1
+    this.baseTransX = 0
+    this.baseTransY = 0
+    this.baseScale = 1
+    this.width = 0
+    this.height = 0
+    var map = this
+    var e
 
-  this.params = jvm.$.extend(true, {}, jvm.Map.defaultParams, params)
-  this.params.container = jvm.$('#' + this.params.container)
+    this.params = jQuery.extend(true, {}, defaultParams, params)
+    this.params.container = jQuery('#' + this.params.container)
 
-  if (!jvm.Map.maps[this.params.map]) {
-    throw new Error('Attempt to use map which was not loaded: ' + this.params.map)
-  }
+    if (!maps[this.params.map]) {
+      throw new Error('Attempt to use map which was not loaded: ' + this.params.map)
+    }
 
-  this.mapData = jvm.Map.maps[this.params.map]
-  this.markers = {}
-  this.regions = {}
-  this.regionsColors = {}
-  this.regionsData = {}
+    this.mapData = maps[this.params.map]
+    this.markers = {}
+    this.regions = {}
+    this.regionsColors = {}
+    this.regionsData = {}
 
-  this.container = jvm.$('<div>').addClass('jvectormap-container')
-  if (this.params.container) {
-    this.params.container.append(this.container)
-  }
-  this.container.data('mapObject', this)
+    this.container = jQuery('<div>').addClass('jvectormap-container')
+    if (this.params.container) {
+      this.params.container.append(this.container)
+    }
+    this.container.data('mapObject', this)
 
-  this.container.dblclick((event) => {
-    var offset = jvm.$(this.container).offset()
-    var centerX = event.pageX - offset.left
-    var centerY = event.pageY - offset.top
-    this.tip.hide()
-    this.setScale(this.scale * 1.6, centerX, centerY, false, this.params.zoomAnimate)
-    event.preventDefault()
-  })
+    this.container.dblclick((event) => {
+      var offset = jQuery(this.container).offset()
+      var centerX = event.pageX - offset.left
+      var centerY = event.pageY - offset.top
+      this.tip.hide()
+      this.setScale(this.scale * 1.6, centerX, centerY, false, this.params.zoomAnimate)
+      event.preventDefault()
+    })
 
-  this.defaultWidth = this.mapData.width
-  this.defaultHeight = this.mapData.height
+    this.defaultWidth = this.mapData.width
+    this.defaultHeight = this.mapData.height
 
-  this.setBackgroundColor(this.params.backgroundColor)
+    this.setBackgroundColor(this.params.backgroundColor)
 
-  this.onResize = function () {
-    map.updateSize()
-  }
-  jvm.$(window).resize(this.onResize)
+    this.onResize = function () {
+      map.updateSize()
+    }
+    jQuery(window).resize(this.onResize)
 
-  for (e in jvm.Map.apiEvents) {
-    if (this.params[e]) {
-      this.container.bind(jvm.Map.apiEvents[e] + '.jvectormap', this.params[e])
+    for (e in apiEvents) {
+      if (this.params[e]) {
+        this.container.on(apiEvents[e] + '.jvectormap', this.params[e])
+      }
+    }
+
+    this.canvas = new jvm.SVGCanvasElement(this.container[0], this.width, this.height)
+    this.canvas.mode = 'svg'
+
+    if (this.params.bindTouchEvents) {
+      if (('ontouchstart' in window) || (window.DocumentTouch && document instanceof DocumentTouch)) {
+        this.bindContainerTouchEvents()
+      } else if (window.MSGesture) {
+        this.bindContainerPointerEvents()
+      }
+    }
+    this.bindContainerEvents()
+    this.bindElementEvents()
+    this.createTip()
+    if (this.params.zoomButtons) {
+      this.bindZoomButtons()
+    }
+
+    this.createRegions()
+    this.createMarkers(this.params.markers || {})
+
+    this.updateSize()
+
+    if (this.params.focusOn) {
+      if (typeof this.params.focusOn === 'string') {
+        this.params.focusOn = {region: this.params.focusOn}
+      } else if (jQuery.isArray(this.params.focusOn)) {
+        this.params.focusOn = {regions: this.params.focusOn}
+      }
+      this.setFocus(this.params.focusOn)
+    }
+
+    if (this.params.selectedRegions) {
+      this.setSelectedRegions(this.params.selectedRegions)
+    }
+    if (this.params.selectedMarkers) {
+      this.setSelectedMarkers(this.params.selectedMarkers)
+    }
+
+    this.legendCntHorizontal = jQuery('<div/>').addClass('jvectormap-legend-cnt jvectormap-legend-cnt-h')
+    this.legendCntVertical = jQuery('<div/>').addClass('jvectormap-legend-cnt jvectormap-legend-cnt-v')
+    this.container.append(this.legendCntHorizontal)
+    this.container.append(this.legendCntVertical)
+
+    if (this.params.series) {
+      this.createSeries()
     }
   }
-
-  this.canvas = new jvm.VectorCanvas(this.container[0], this.width, this.height)
-
-  if (this.params.bindTouchEvents) {
-    if (('ontouchstart' in window) || (window.DocumentTouch && document instanceof DocumentTouch)) {
-      this.bindContainerTouchEvents()
-    } else if (window.MSGesture) {
-      this.bindContainerPointerEvents()
-    }
-  }
-  this.bindContainerEvents()
-  this.bindElementEvents()
-  this.createTip()
-  if (this.params.zoomButtons) {
-    this.bindZoomButtons()
-  }
-
-  this.createRegions()
-  this.createMarkers(this.params.markers || {})
-
-  this.updateSize()
-
-  if (this.params.focusOn) {
-    if (typeof this.params.focusOn === 'string') {
-      this.params.focusOn = {region: this.params.focusOn}
-    } else if (jvm.$.isArray(this.params.focusOn)) {
-      this.params.focusOn = {regions: this.params.focusOn}
-    }
-    this.setFocus(this.params.focusOn)
-  }
-
-  if (this.params.selectedRegions) {
-    this.setSelectedRegions(this.params.selectedRegions)
-  }
-  if (this.params.selectedMarkers) {
-    this.setSelectedMarkers(this.params.selectedMarkers)
-  }
-
-  this.legendCntHorizontal = jvm.$('<div/>').addClass('jvectormap-legend-cnt jvectormap-legend-cnt-h')
-  this.legendCntVertical = jvm.$('<div/>').addClass('jvectormap-legend-cnt jvectormap-legend-cnt-v')
-  this.container.append(this.legendCntHorizontal)
-  this.container.append(this.legendCntVertical)
-
-  if (this.params.series) {
-    this.createSeries()
-  }
-}
-
-jvm.Map.prototype = {
-  transX: 0,
-  transY: 0,
-  scale: 1,
-  baseTransX: 0,
-  baseTransY: 0,
-  baseScale: 1,
-
-  width: 0,
-  height: 0,
 
   /**
    * Set background color of the map.
    * @param {String} backgroundColor Background color in CSS format.
    */
-  setBackgroundColor: function (backgroundColor) {
+  setBackgroundColor (backgroundColor) {
     this.container.css('background-color', backgroundColor)
-  },
+  }
 
-  resize: function () {
+  resize () {
     var curBaseScale = this.baseScale
     if (this.width / this.height > this.defaultWidth / this.defaultHeight) {
       this.baseScale = this.height / this.defaultHeight
@@ -232,23 +239,23 @@ jvm.Map.prototype = {
     this.scale *= this.baseScale / curBaseScale
     this.transX *= this.baseScale / curBaseScale
     this.transY *= this.baseScale / curBaseScale
-  },
+  }
 
   /**
    * Synchronize the size of the map with the size of the container. Suitable in situations where the size of the container is changed programmatically or container is shown after it became visible.
    */
-  updateSize: function () {
+  updateSize () {
     this.width = this.container.width()
     this.height = this.container.height()
     this.resize()
     this.canvas.setSize(this.width, this.height)
     this.applyTransform()
-  },
+  }
 
   /**
    * Reset all the series and show the map with the initial zoom.
    */
-  reset: function () {
+  reset () {
     var key,
       i
 
@@ -261,9 +268,9 @@ jvm.Map.prototype = {
     this.transX = this.baseTransX
     this.transY = this.baseTransY
     this.applyTransform()
-  },
+  }
 
-  applyTransform: function () {
+  applyTransform () {
     var maxTransX,
       maxTransY,
       minTransX,
@@ -305,9 +312,9 @@ jvm.Map.prototype = {
     this.repositionLabels()
 
     this.container.trigger('viewportChange', [this.scale / this.baseScale, this.transX, this.transY])
-  },
+  }
 
-  bindContainerEvents: function () {
+  bindContainerEvents () {
     var mouseDown = false,
       oldPageX,
       oldPageY,
@@ -335,12 +342,12 @@ jvm.Map.prototype = {
       this.onContainerMouseUp = function () {
         mouseDown = false
       }
-      jvm.$('body').mouseup(this.onContainerMouseUp)
+      jQuery('body').mouseup(this.onContainerMouseUp)
     }
 
     if (this.params.zoomOnScroll) {
       this.container.mousewheel(function (event, delta, deltaX, deltaY) {
-        var offset = jvm.$(map.container).offset(),
+        var offset = jQuery(map.container).offset(),
           centerX = event.pageX - offset.left,
           centerY = event.pageY - offset.top,
           zoomStep = Math.pow(1 + map.params.zoomOnScrollSpeed / 1000, event.deltaFactor * event.deltaY)
@@ -351,9 +358,9 @@ jvm.Map.prototype = {
         event.preventDefault()
       })
     }
-  },
+  }
 
-  bindContainerTouchEvents: function () {
+  bindContainerTouchEvents () {
     var touchStartScale,
       touchStartDistance,
       map = this,
@@ -401,7 +408,7 @@ jvm.Map.prototype = {
             map.tip.hide()
             e.preventDefault()
           } else {
-            offset = jvm.$(map.container).offset()
+            offset = jQuery(map.container).offset()
             if (touches[0].pageX > touches[1].pageX) {
               centerTouchX = touches[1].pageX + (touches[0].pageX - touches[1].pageX) / 2
             } else {
@@ -425,11 +432,11 @@ jvm.Map.prototype = {
         lastTouchesLength = touches.length
       }
 
-    jvm.$(this.container).bind('touchstart', handleTouchEvent)
-    jvm.$(this.container).bind('touchmove', handleTouchEvent)
-  },
+    jQuery(this.container).bind('touchstart', handleTouchEvent)
+    jQuery(this.container).bind('touchmove', handleTouchEvent)
+  }
 
-  bindContainerPointerEvents: function () {
+  bindContainerPointerEvents () {
     var map = this,
       gesture = new MSGesture(),
       element = this.container[0],
@@ -467,9 +474,9 @@ jvm.Map.prototype = {
     gesture.target = element
     element.addEventListener('MSGestureChange', handleGestureEvent, false)
     element.addEventListener('pointerdown', handlePointerDownEvent, false)
-  },
+  }
 
-  bindElementEvents: function () {
+  bindElementEvents () {
     var map = this,
       pageX,
       pageY,
@@ -484,13 +491,13 @@ jvm.Map.prototype = {
     /* Can not use common class selectors here because of the bug in jQuery
        SVG handling, use with caution. */
     this.container.delegate("[class~='jvectormap-element']", 'mouseover mouseout', function (e) {
-      var baseVal = jvm.$(this).attr('class').baseVal || jvm.$(this).attr('class'),
+      var baseVal = jQuery(this).attr('class').baseVal || jQuery(this).attr('class'),
         type = baseVal.indexOf('jvectormap-region') === -1 ? 'marker' : 'region',
-        code = type == 'region' ? jvm.$(this).attr('data-code') : jvm.$(this).attr('data-index'),
+        code = type == 'region' ? jQuery(this).attr('data-code') : jQuery(this).attr('data-index'),
         element = type == 'region' ? map.regions[code].element : map.markers[code].element,
         tipText = type == 'region' ? map.mapData.paths[code].name : (map.markers[code].config.name || ''),
-        tipShowEvent = jvm.$.Event(type + 'TipShow.jvectormap'),
-        overEvent = jvm.$.Event(type + 'Over.jvectormap')
+        tipShowEvent = jQuery.Event(type + 'TipShow.jvectormap'),
+        overEvent = jQuery.Event(type + 'Over.jvectormap')
 
       if (e.type == 'mouseover') {
         map.container.trigger(overEvent, [code])
@@ -522,15 +529,15 @@ jvm.Map.prototype = {
 
     /* Can not use common class selectors here because of the bug in jQuery
        SVG handling, use with caution. */
-    this.container.delegate("[class~='jvectormap-element']", 'mouseup', function () {
-      var baseVal = jvm.$(this).attr('class').baseVal ? jvm.$(this).attr('class').baseVal : jvm.$(this).attr('class'),
+    this.container.on('click', "[class~='jvectormap-element']", function (event) {
+      var baseVal = jQuery(this).attr('class').baseVal ? jQuery(this).attr('class').baseVal : jQuery(this).attr('class'),
         type = baseVal.indexOf('jvectormap-region') === -1 ? 'marker' : 'region',
-        code = type == 'region' ? jvm.$(this).attr('data-code') : jvm.$(this).attr('data-index'),
-        clickEvent = jvm.$.Event(type + 'Click.jvectormap'),
+        code = type == 'region' ? jQuery(this).attr('data-code') : jQuery(this).attr('data-index'),
+        clickEvent = jQuery.Event(type + 'Click.jvectormap'),
         element = type == 'region' ? map.regions[code].element : map.markers[code].element
 
       if (!mouseMoved) {
-        map.container.trigger(clickEvent, [code])
+        map.container.trigger(clickEvent, [code, event])
         if ((type === 'region' && map.params.regionsSelectable) || (type === 'marker' && map.params.markersSelectable)) {
           if (!clickEvent.isDefaultPrevented()) {
             if (map.params[type + 'sSelectableOne']) {
@@ -541,13 +548,13 @@ jvm.Map.prototype = {
         }
       }
     })
-  },
+  }
 
-  bindZoomButtons: function () {
+  bindZoomButtons () {
     var map = this
 
-    jvm.$('<div/>').addClass('jvectormap-zoomin').text('+').appendTo(this.container)
-    jvm.$('<div/>').addClass('jvectormap-zoomout').html('&#x2212;').appendTo(this.container)
+    jQuery('<div/>').addClass('jvectormap-zoomin').text('+').appendTo(this.container)
+    jQuery('<div/>').addClass('jvectormap-zoomout').html('&#x2212;').appendTo(this.container)
 
     this.container.find('.jvectormap-zoomin').click(function () {
       map.setScale(map.scale * map.params.zoomStep, map.width / 2, map.height / 2, false, map.params.zoomAnimate)
@@ -555,12 +562,12 @@ jvm.Map.prototype = {
     this.container.find('.jvectormap-zoomout').click(function () {
       map.setScale(map.scale / map.params.zoomStep, map.width / 2, map.height / 2, false, map.params.zoomAnimate)
     })
-  },
+  }
 
-  createTip: function () {
+  createTip () {
     var map = this
 
-    this.tip = jvm.$('<div/>').addClass('jvectormap-tip').appendTo(jvm.$('body'))
+    this.tip = jQuery('<div/>').addClass('jvectormap-tip').appendTo(jQuery('body'))
 
     this.container.mousemove(function (e) {
       var left = e.pageX - 15 - map.tipWidth,
@@ -578,10 +585,10 @@ jvm.Map.prototype = {
         top: top
       })
     })
-  },
+  }
 
-  setScale: function (scale, anchorX, anchorY, isCentered, animate) {
-    var viewportChangeEvent = jvm.$.Event('zoom.jvectormap'),
+  setScale (scale, anchorX, anchorY, isCentered, animate) {
+    var viewportChangeEvent = jQuery.Event('zoom.jvectormap'),
       interval,
       that = this,
       i = 0,
@@ -594,7 +601,7 @@ jvm.Map.prototype = {
       transYDiff,
       transX,
       transY,
-      deferred = new jvm.$.Deferred()
+      deferred = new jQuery.Deferred()
 
     if (scale > this.params.zoomMax * this.baseScale) {
       scale = this.params.zoomMax * this.baseScale
@@ -642,7 +649,7 @@ jvm.Map.prototype = {
     }
 
     return deferred
-  },
+  }
 
   /**
    * Set the map's viewport to the specific point and set zoom of the map to the specific level. Point and zoom level could be defined in two ways: using the code of some region to focus on or a central point and zoom level as numbers.
@@ -656,7 +663,7 @@ jvm.Map.prototype = {
    * @param {Number} params.y Number from 0 to 1 specifying the vertical coordinate of the central point of the viewport.
    * @param {Boolean} params.animate Indicates whether or not to animate the scale change and transition.
    */
-  setFocus: function (config) {
+  setFocus (config) {
     var bbox,
       itemBbox,
       newBbox,
@@ -709,9 +716,9 @@ jvm.Map.prototype = {
       }
       return this.setScale(config.scale * this.baseScale, config.x, config.y, true, config.animate)
     }
-  },
+  }
 
-  getSelected: function (type) {
+  getSelected (type) {
     var key,
       selected = []
 
@@ -721,32 +728,32 @@ jvm.Map.prototype = {
       }
     }
     return selected
-  },
+  }
 
   /**
    * Return the codes of currently selected regions.
    * @returns {Array}
    */
-  getSelectedRegions: function () {
+  getSelectedRegions () {
     return this.getSelected('regions')
-  },
+  }
 
   /**
    * Return the codes of currently selected markers.
    * @returns {Array}
    */
-  getSelectedMarkers: function () {
+  getSelectedMarkers () {
     return this.getSelected('markers')
-  },
+  }
 
-  setSelected: function (type, keys) {
+  setSelected (type, keys) {
     var i
 
     if (typeof keys !== 'object') {
       keys = [keys]
     }
 
-    if (jvm.$.isArray(keys)) {
+    if (jQuery.isArray(keys)) {
       for (i = 0; i < keys.length; i++) {
         this[type][keys[i]].element.setSelected(true)
       }
@@ -755,25 +762,25 @@ jvm.Map.prototype = {
         this[type][i].element.setSelected(!!keys[i])
       }
     }
-  },
+  }
 
   /**
    * Set or remove selected state for the regions.
    * @param {String|Array|Object} keys If <code>String</code> or <code>Array</code> the region(s) with the corresponding code(s) will be selected. If <code>Object</code> was provided its keys are  codes of regions, state of which should be changed. Selected state will be set if value is true, removed otherwise.
    */
-  setSelectedRegions: function (keys) {
+  setSelectedRegions (keys) {
     this.setSelected('regions', keys)
-  },
+  }
 
   /**
    * Set or remove selected state for the markers.
    * @param {String|Array|Object} keys If <code>String</code> or <code>Array</code> the marker(s) with the corresponding code(s) will be selected. If <code>Object</code> was provided its keys are  codes of markers, state of which should be changed. Selected state will be set if value is true, removed otherwise.
    */
-  setSelectedMarkers: function (keys) {
+  setSelectedMarkers (keys) {
     this.setSelected('markers', keys)
-  },
+  }
 
-  clearSelected: function (type) {
+  clearSelected (type) {
     var select = {},
       selected = this.getSelected(type),
       i
@@ -783,39 +790,39 @@ jvm.Map.prototype = {
     };
 
     this.setSelected(type, select)
-  },
+  }
 
   /**
    * Remove the selected state from all the currently selected regions.
    */
-  clearSelectedRegions: function () {
+  clearSelectedRegions () {
     this.clearSelected('regions')
-  },
+  }
 
   /**
    * Remove the selected state from all the currently selected markers.
    */
-  clearSelectedMarkers: function () {
+  clearSelectedMarkers () {
     this.clearSelected('markers')
-  },
+  }
 
   /**
    * Return the instance of Map. Useful when instantiated as a jQuery plug-in.
    * @returns {Map}
    */
-  getMapObject: function () {
+  getMapObject () {
     return this
-  },
+  }
 
   /**
    * Return the name of the region by region code.
    * @returns {String}
    */
-  getRegionName: function (code) {
+  getRegionName (code) {
     return this.mapData.paths[code].name
-  },
+  }
 
-  createRegions: function () {
+  createRegions () {
     var key,
       region,
       map = this
@@ -823,28 +830,28 @@ jvm.Map.prototype = {
     this.regionLabelsGroup = this.regionLabelsGroup || this.canvas.addGroup()
 
     for (key in this.mapData.paths) {
-      region = new jvm.Region({
+      region = new Region({
         map: this,
         path: this.mapData.paths[key].path,
         code: key,
-        style: jvm.$.extend(true, {}, this.params.regionStyle),
-        labelStyle: jvm.$.extend(true, {}, this.params.regionLabelStyle),
+        style: jQuery.extend(true, {}, this.params.regionStyle),
+        labelStyle: jQuery.extend(true, {}, this.params.regionLabelStyle),
         canvas: this.canvas,
         labelsGroup: this.regionLabelsGroup,
         label: this.canvas.mode != 'vml' ? (this.params.labels && this.params.labels.regions) : null
       })
 
-      jvm.$(region.shape).bind('selected', function (e, isSelected) {
-        map.container.trigger('regionSelected.jvectormap', [jvm.$(this.node).attr('data-code'), isSelected, map.getSelectedRegions()])
+      jQuery(region.shape).bind('selected', function (e, isSelected) {
+        map.container.trigger('regionSelected.jvectormap', [jQuery(this.node).attr('data-code'), isSelected, map.getSelectedRegions()])
       })
       this.regions[key] = {
         element: region,
         config: this.mapData.paths[key]
       }
     }
-  },
+  }
 
-  createMarkers: function (markers) {
+  createMarkers (markers) {
     var i,
       marker,
       point,
@@ -855,7 +862,7 @@ jvm.Map.prototype = {
     this.markersGroup = this.markersGroup || this.canvas.addGroup()
     this.markerLabelsGroup = this.markerLabelsGroup || this.canvas.addGroup()
 
-    if (jvm.$.isArray(markers)) {
+    if (jQuery.isArray(markers)) {
       markersArray = markers.slice()
       markers = {}
       for (i = 0; i < markersArray.length; i++) {
@@ -868,10 +875,10 @@ jvm.Map.prototype = {
       point = this.getMarkerPosition(markerConfig)
 
       if (point !== false) {
-        marker = new jvm.Marker({
+        marker = new Marker({
           map: this,
-          style: jvm.$.extend(true, {}, this.params.markerStyle, {initial: markerConfig.style || {}}),
-          labelStyle: jvm.$.extend(true, {}, this.params.markerLabelStyle),
+          style: jQuery.extend(true, {}, this.params.markerStyle, {initial: markerConfig.style || {}}),
+          labelStyle: jQuery.extend(true, {}, this.params.markerLabelStyle),
           index: i,
           cx: point.x,
           cy: point.y,
@@ -881,8 +888,8 @@ jvm.Map.prototype = {
           label: this.canvas.mode != 'vml' ? (this.params.labels && this.params.labels.markers) : null
         })
 
-        jvm.$(marker.shape).bind('selected', function (e, isSelected) {
-          map.container.trigger('markerSelected.jvectormap', [jvm.$(this.node).attr('data-index'), isSelected, map.getSelectedMarkers()])
+        jQuery(marker.shape).bind('selected', function (e, isSelected) {
+          map.container.trigger('markerSelected.jvectormap', [jQuery(this.node).attr('data-index'), isSelected, map.getSelectedMarkers()])
         })
         if (this.markers[i]) {
           this.removeMarkers([i])
@@ -890,9 +897,9 @@ jvm.Map.prototype = {
         this.markers[i] = {element: marker, config: markerConfig}
       }
     }
-  },
+  }
 
-  repositionMarkers: function () {
+  repositionMarkers () {
     var i,
       point
 
@@ -902,9 +909,9 @@ jvm.Map.prototype = {
         this.markers[i].element.setStyle({cx: point.x, cy: point.y})
       }
     }
-  },
+  }
 
-  repositionLabels: function () {
+  repositionLabels () {
     var key
 
     for (key in this.regions) {
@@ -914,10 +921,10 @@ jvm.Map.prototype = {
     for (key in this.markers) {
       this.markers[key].element.updateLabelPosition()
     }
-  },
+  }
 
-  getMarkerPosition: function (markerConfig) {
-    if (jvm.Map.maps[this.params.map].projection) {
+  getMarkerPosition (markerConfig) {
+    if (maps[this.params.map].projection) {
       return this.latLngToPoint.apply(this, markerConfig.latLng || [0, 0])
     } else {
       return {
@@ -925,7 +932,7 @@ jvm.Map.prototype = {
         y: markerConfig.coords[1] * this.scale + this.transY * this.scale
       }
     }
-  },
+  }
 
   /**
    * Add one marker to the map.
@@ -933,7 +940,7 @@ jvm.Map.prototype = {
    * @param {Object} marker Marker configuration parameters.
    * @param {Array} seriesData Values to add to the data series.
    */
-  addMarker: function (key, marker, seriesData) {
+  addMarker (key, marker, seriesData) {
     var markers = {},
       data = [],
       values,
@@ -950,14 +957,14 @@ jvm.Map.prototype = {
       data.push(values)
     }
     this.addMarkers(markers, data)
-  },
+  }
 
   /**
    * Add set of marker to the map.
    * @param {Object|Array} markers Markers to add to the map. In case of array is provided, codes of markers will be set as string representations of array indexes.
    * @param {Array} seriesData Values to add to the data series.
    */
-  addMarkers: function (markers, seriesData) {
+  addMarkers (markers, seriesData) {
     var i
 
     seriesData = seriesData || []
@@ -966,25 +973,25 @@ jvm.Map.prototype = {
     for (i = 0; i < seriesData.length; i++) {
       this.series.markers[i].setValues(seriesData[i] || {})
     };
-  },
+  }
 
   /**
    * Remove some markers from the map.
    * @param {Array} markers Array of marker codes to be removed.
    */
-  removeMarkers: function (markers) {
+  removeMarkers (markers) {
     var i
 
     for (i = 0; i < markers.length; i++) {
       this.markers[ markers[i] ].element.remove()
       delete this.markers[ markers[i] ]
     };
-  },
+  }
 
   /**
    * Remove all markers from the map.
    */
-  removeAllMarkers: function () {
+  removeAllMarkers () {
     var i,
       markers = []
 
@@ -992,16 +999,16 @@ jvm.Map.prototype = {
       markers.push(i)
     }
     this.removeMarkers(markers)
-  },
+  }
 
   /**
    * Converts coordinates expressed as latitude and longitude to the coordinates in pixels on the map.
    * @param {Number} lat Latitide of point in degrees.
    * @param {Number} lng Longitude of point in degrees.
    */
-  latLngToPoint: function (lat, lng) {
+  latLngToPoint (lat, lng) {
     var point,
-      proj = jvm.Map.maps[this.params.map].projection,
+      proj = maps[this.params.map].projection,
       centralMeridian = proj.centralMeridian,
       inset,
       bbox
@@ -1010,7 +1017,7 @@ jvm.Map.prototype = {
       lng += 360
     }
 
-    point = jvm.Proj[proj.type](lat, lng, centralMeridian)
+    point = Proj[proj.type](lat, lng, centralMeridian)
 
     inset = this.getInsetForPoint(point.x, point.y)
     if (inset) {
@@ -1026,17 +1033,17 @@ jvm.Map.prototype = {
     } else {
       return false
     }
-  },
+  }
 
   /**
    * Converts cartesian coordinates into coordinates expressed as latitude and longitude.
    * @param {Number} x X-axis of point on map in pixels.
    * @param {Number} y Y-axis of point on map in pixels.
    */
-  pointToLatLng: function (x, y) {
-    var proj = jvm.Map.maps[this.params.map].projection,
+  pointToLatLng (x, y) {
+    var proj = maps[this.params.map].projection,
       centralMeridian = proj.centralMeridian,
-      insets = jvm.Map.maps[this.params.map].insets,
+      insets = maps[this.params.map].insets,
       i,
       inset,
       bbox,
@@ -1054,15 +1061,15 @@ jvm.Map.prototype = {
       ny = (ny / (inset.height * this.scale)) * (bbox[1].y - bbox[0].y) + bbox[0].y
 
       if (nx > bbox[0].x && nx < bbox[1].x && ny > bbox[0].y && ny < bbox[1].y) {
-        return jvm.Proj[proj.type + '_inv'](nx, -ny, centralMeridian)
+        return Proj[proj.type + '_inv'](nx, -ny, centralMeridian)
       }
     }
 
     return false
-  },
+  }
 
-  getInsetForPoint: function (x, y) {
-    var insets = jvm.Map.maps[this.params.map].insets,
+  getInsetForPoint (x, y) {
+    var insets = maps[this.params.map].insets,
       i,
       bbox
 
@@ -1072,9 +1079,9 @@ jvm.Map.prototype = {
         return insets[i]
       }
     }
-  },
+  }
 
-  createSeries: function () {
+  createSeries () {
     var i,
       key
 
@@ -1085,28 +1092,29 @@ jvm.Map.prototype = {
 
     for (key in this.params.series) {
       for (i = 0; i < this.params.series[key].length; i++) {
-        this.series[key][i] = new jvm.DataSeries(
+        this.series[key][i] = new DataSeries(
           this.params.series[key][i],
           this[key],
           this
         )
       }
     }
-  },
+  }
 
   /**
    * Gracefully remove the map and and all its accessories, unbind event handlers.
    */
-  remove: function () {
+  remove () {
     this.tip.remove()
     this.container.remove()
-    jvm.$(window).unbind('resize', this.onResize)
-    jvm.$('body').unbind('mouseup', this.onContainerMouseUp)
+    jQuery(window).unbind('resize', this.onResize)
+    jQuery('body').unbind('mouseup', this.onContainerMouseUp)
   }
 }
 
-jvm.Map.maps = {}
-jvm.Map.defaultParams = {
+export var maps = {}
+
+var defaultParams = {
   map: 'world_mill_en',
   backgroundColor: '#505050',
   zoomButtons: true,
@@ -1184,7 +1192,7 @@ jvm.Map.defaultParams = {
   }
 }
 
-jvm.Map.apiEvents = {
+var apiEvents = {
   onRegionTipShow: 'regionTipShow',
   onRegionOver: 'regionOver',
   onRegionOut: 'regionOut',

@@ -1,45 +1,77 @@
-import { jvm } from './jvectormap'
+export class OrdinalScale {
+  constructor (scale) {
+    this.scale = scale
+  }
 
-jvm.NumericScale = function (scale, normalizeFunction, minValue, maxValue) {
-  this.scale = []
+  getValue (value) {
+    return this.scale[value]
+  }
 
-  normalizeFunction = normalizeFunction || 'linear'
+  getTicks () {
+    var ticks = []
+    var key
 
-  if (scale) this.setScale(scale)
-  if (normalizeFunction) this.setNormalizeFunction(normalizeFunction)
-  if (typeof minValue !== 'undefined') this.setMin(minValue)
-  if (typeof maxValue !== 'undefined') this.setMax(maxValue)
+    for (key in this.scale) {
+      ticks.push({
+        label: key,
+        value: this.scale[key]
+      })
+    }
+
+    return ticks
+  }
 }
 
-jvm.NumericScale.prototype = {
-  setMin: function (min) {
+export class SimpleScale {
+  constructor (scale) {
+    this.scale = scale
+  }
+
+  getValue (value) {
+    return value
+  }
+}
+
+export class NumericScale {
+  constructor (scale, normalizeFunction, minValue, maxValue) {
+    this.scale = []
+
+    normalizeFunction = normalizeFunction || 'linear'
+
+    if (scale) this.setScale(scale)
+    if (normalizeFunction) this.setNormalizeFunction(normalizeFunction)
+    if (typeof minValue !== 'undefined') this.setMin(minValue)
+    if (typeof maxValue !== 'undefined') this.setMax(maxValue)
+  }
+
+  setMin (min) {
     this.clearMinValue = min
     if (typeof this.normalize === 'function') {
       this.minValue = this.normalize(min)
     } else {
       this.minValue = min
     }
-  },
+  }
 
-  setMax: function (max) {
+  setMax (max) {
     this.clearMaxValue = max
     if (typeof this.normalize === 'function') {
       this.maxValue = this.normalize(max)
     } else {
       this.maxValue = max
     }
-  },
+  }
 
-  setScale: function (scale) {
+  setScale (scale) {
     var i
 
     this.scale = []
     for (i = 0; i < scale.length; i++) {
       this.scale[i] = [scale[i]]
     }
-  },
+  }
 
-  setNormalizeFunction: function (f) {
+  setNormalizeFunction (f) {
     if (f === 'polynomial') {
       this.normalize = function (value) {
         return Math.pow(value, 0.2)
@@ -51,14 +83,14 @@ jvm.NumericScale.prototype = {
     }
     this.setMin(this.clearMinValue)
     this.setMax(this.clearMaxValue)
-  },
+  }
 
-  getValue: function (value) {
-    var lengthes = [],
-      fullLength = 0,
-      l,
-      i = 0,
-      c
+  getValue (value) {
+    var lengthes = []
+    var fullLength = 0
+    var l
+    var i = 0
+    var c
 
     if (typeof this.normalize === 'function') {
       value = this.normalize(value)
@@ -97,67 +129,68 @@ jvm.NumericScale.prototype = {
     }
 
     return value
-  },
+  }
 
-  vectorToNum: function (vector) {
-    var num = 0,
-      i
+  vectorToNum (vector) {
+    var num = 0
+    var i
 
     for (i = 0; i < vector.length; i++) {
       num += Math.round(vector[i]) * Math.pow(256, vector.length - i - 1)
     }
     return num
-  },
+  }
 
-  vectorSubtract: function (vector1, vector2) {
-    var vector = [],
-      i
+  vectorSubtract (vector1, vector2) {
+    var vector = []
+    var i
 
     for (i = 0; i < vector1.length; i++) {
       vector[i] = vector1[i] - vector2[i]
     }
     return vector
-  },
+  }
 
-  vectorAdd: function (vector1, vector2) {
-    var vector = [],
-      i
+  vectorAdd (vector1, vector2) {
+    var vector = []
+    var i
 
     for (i = 0; i < vector1.length; i++) {
       vector[i] = vector1[i] + vector2[i]
     }
     return vector
-  },
+  }
 
-  vectorMult: function (vector, num) {
-    var result = [],
-      i
+  vectorMult (vector, num) {
+    var result = []
+    var i
 
     for (i = 0; i < vector.length; i++) {
       result[i] = vector[i] * num
     }
     return result
-  },
+  }
 
-  vectorLength: function (vector) {
-    var result = 0,
-      i
+  vectorLength (vector) {
+    var result = 0
+    var i
+
     for (i = 0; i < vector.length; i++) {
       result += vector[i] * vector[i]
     }
     return Math.sqrt(result)
-  },
+  }
 
   /* Derived from d3 implementation https://github.com/mbostock/d3/blob/master/src/scale/linear.js#L94 */
-  getTicks: function () {
-    var m = 5,
-      extent = [this.clearMinValue, this.clearMaxValue],
-      span = extent[1] - extent[0],
-      step = Math.pow(10, Math.floor(Math.log(span / m) / Math.LN10)),
-      err = m / span * step,
-      ticks = [],
-      tick,
-      v
+  getTicks () {
+    var m = 5
+    var extent = [this.clearMinValue, this.clearMaxValue]
+    var span = extent[1] - extent[0]
+    var step = Math.pow(10, Math.floor(Math.log(span / m) / Math.LN10))
+    var err = m / span * step
+    var ticks = []
+    var tick
+    var v
 
     if (err <= 0.15) step *= 10
     else if (err <= 0.35) step *= 5
@@ -184,4 +217,49 @@ jvm.NumericScale.prototype = {
 
     return ticks
   }
+}
+
+export class ColorScale extends NumericScale {
+  constructor (colors, normalizeFunction, minValue, maxValue) {
+    super()
+  }
+
+  setScale (scale) {
+    var i
+
+    for (i = 0; i < scale.length; i++) {
+      this.scale[i] = rgbToArray(scale[i])
+    }
+  }
+
+  getValue (value) {
+    return numToRgb(super.getValue(value))
+  }
+
+  arrayToRgb (ar) {
+    var rgb = '#'
+    var d
+    var i
+
+    for (i = 0; i < ar.length; i++) {
+      d = ar[i].toString(16)
+      rgb += d.length === 1 ? '0' + d : d
+    }
+    return rgb
+  }
+}
+
+function numToRgb (num) {
+  num = num.toString(16)
+
+  while (num.length < 6) {
+    num = '0' + num
+  }
+
+  return '#' + num
+}
+
+function rgbToArray (rgb) {
+  rgb = rgb.substr(1)
+  return [parseInt(rgb.substr(0, 2), 16), parseInt(rgb.substr(2, 2), 16), parseInt(rgb.substr(4, 2), 16)]
 }

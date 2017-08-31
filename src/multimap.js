@@ -57,8 +57,8 @@ jvm.MultiMap.prototype = {
     this.maps[name] = new jvm.Map(jvm.$.extend(config, {container: cnt}))
     if (this.params.maxLevel > config.multiMapLevel) {
       this.maps[name].container.on('regionClick.jvectormap', {scope: this}, function (e, code) {
-        var multimap = e.data.scope,
-          mapName = multimap.params.mapNameByCode(code, multimap)
+        var multimap = e.data.scope
+        var mapName = multimap.params.mapNameByCode(code, multimap)
 
         if (!multimap.drillDownPromise || multimap.drillDownPromise.state() !== 'pending') {
           multimap.drillDown(mapName, code)
@@ -70,8 +70,8 @@ jvm.MultiMap.prototype = {
   },
 
   downloadMap: function (code) {
-    var that = this,
-      deferred = jvm.$.Deferred()
+    var that = this
+    var deferred = jvm.$.Deferred()
 
     if (!this.mapsLoaded[code]) {
       jvm.$.get(this.params.mapUrlByCode(code, this)).then(function () {

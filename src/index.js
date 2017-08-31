@@ -1,19 +1,9 @@
-import {jvm} from './jvectormap'
-import './abstract-element.js'
-import './svg'
-import './vml'
-import './vector-canvas.js'
-import './simple-scale.js'
-import './ordinal-scale.js'
-import './numeric-scale.js'
-import './color-scale.js'
-import './legend.js'
-import './data-series.js'
-import './proj.js'
-import './map-object.js'
-import './region.js'
-import './marker.js'
-import './map.js'
-import './multimap.js'
+import './jvectormap'
 
-export default jvm
+// import './multimap.js'
+
+import { Map } from './map'
+
+export default {
+  Map
+}
