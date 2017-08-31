@@ -1,27 +1,56 @@
 {
-  "name": "@refactors/vector-map",
-  "version": "1.0.0",
-  "description": "",
-  "main": "./src/map.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/refactors/vector-map.git"
+  "_from": "@refactors/vector-map",
+  "_id": "@refactors/vector-map@1.0.0",
+  "_inBundle": false,
+  "_integrity": "sha512-VsQzXaOII7zyyoOjJG6WLdiUeQF/Ubnmbma6ZbtY8vpRkEo2brFZFq7ITPVonNdxSa7dGG7iN147tnbImP/f7w==",
+  "_location": "/@refactors/vector-map",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "@refactors/vector-map",
+    "name": "@refactors/vector-map",
+    "escapedName": "@refactors%2fvector-map",
+    "scope": "@refactors",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
   },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@refactors/vector-map/-/vector-map-1.0.0.tgz",
+  "_shasum": "3854f04df5f62cd67b00e2115d7780b9d96351df",
+  "_spec": "@refactors/vector-map",
+  "_where": "D:\\Code\\travelers-map",
+  "author": {
+    "name": "Refactors"
+  },
+  "bugs": {
+    "url": "https://github.com/refactors/vector-map/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "jquery": "^3.2.1",
+    "jquery-mousewheel": "^3.1.13",
+    "mixin": "^0.2.0"
+  },
+  "deprecated": false,
+  "description": "[![Latest Version](https://img.shields.io/npm/v/@refactors/vector-map.svg?style=flat-square)][1]",
+  "homepage": "https://github.com/refactors/vector-map#readme",
   "keywords": [
     "map",
     "vector",
     "js",
     "svg"
   ],
-  "dependencies": {
-    "jquery": "^3.2.1",
-    "jquery-mousewheel": "^3.1.13",
-    "mixin": "^0.2.0"
-  },
-  "author": "Refactors",
   "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/refactors/vector-map/issues"
+  "main": "./src/map.js",
+  "name": "@refactors/vector-map",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/refactors/vector-map.git"
   },
-  "homepage": "https://github.com/refactors/vector-map#readme"
+  "version": "1.0.0"
 }

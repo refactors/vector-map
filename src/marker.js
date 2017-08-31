@@ -25,7 +25,7 @@ export default class Marker extends MapObject {
         y: this.labelY
       }, config.labelStyle, config.labelsGroup)
 
-      this.label.addClass('vm-marker vm-element')
+      this.label.addClass('vectormap-marker vectormap-element')
     }
   }
 
@@ -41,7 +41,7 @@ export default class Marker extends MapObject {
       cy: this.config.cy
     }, this.config.style, this.config.group)
 
-    this.shape.addClass('vm-marker vm-element')
+    this.shape.addClass('vectormap-marker vectormap-element')
 
     if (this.isImage) {
       jQuery(this.shape.node).on('imageloaded', function () {

@@ -14,7 +14,7 @@ export default class Region extends MapObject {
       d: config.path,
       'data-code': config.code
     }, config.style, config.canvas.rootElement)
-    this.shape.addClass('jvectormap-region jvectormap-element')
+    this.shape.addClass('vectormap-region vectormap-element')
 
     bbox = this.shape.getBBox()
 
@@ -31,7 +31,7 @@ export default class Region extends MapObject {
         y: this.labelY,
         'data-code': config.code
       }, config.labelStyle, config.labelsGroup)
-      this.label.addClass('jvectormap-region jvectormap-element')
+      this.label.addClass('vectormap-region vectormap-element')
     }
   }
 
