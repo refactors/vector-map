@@ -1,4 +1,4 @@
-import { jvm } from './jvectormap'
+import jQuery from 'jquery'
 import Legend from './legend'
 import { OrdinalScale, SimpleScale, NumericScale, ColorScale } from './scales'
 
@@ -28,7 +28,7 @@ export default class DataSeries {
       this.setAttributes(params.attributes)
     }
 
-    if (jvm.$.isArray(params.scale)) {
+    if (jQuery.isArray(params.scale)) {
       ScaleConstructor = (params.attribute === 'fill' || params.attribute === 'stroke') ? ColorScale : NumericScale
       this.scale = new ScaleConstructor(params.scale, params.normalizeFunction, params.min, params.max)
     } else if (params.scale) {
@@ -41,7 +41,7 @@ export default class DataSeries {
     this.setValues(this.values)
 
     if (this.params.legend) {
-      this.legend = new Legend(jvm.$.extend({
+      this.legend = new Legend(jQuery.extend({
         map: this.map,
         series: this
       }, this.params.legend))
@@ -122,7 +122,7 @@ export default class DataSeries {
     }
 
     this.setAttributes(attrs)
-    jvm.$.extend(this.values, values)
+    jQuery.extend(this.values, values)
   }
 
   clear () {

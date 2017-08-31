@@ -1,5 +1,5 @@
 import jQuery from 'jquery'
-import { isImageUrl } from './jvectormap'
+import { isImageUrl } from './helpers'
 
 export default class Legend {
   /**

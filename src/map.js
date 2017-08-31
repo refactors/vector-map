@@ -1,12 +1,10 @@
 import jQuery from 'jquery'
+import 'jquery-mousewheel'
 import Region from './region'
 import Marker from './marker'
 import DataSeries from './data-series'
 import Proj from './proj'
-
-import { jvm } from './jvectormap'
-import './abstract'
-import './svg'
+import { CanvasElement } from './canvas'
 
 export class Map {
   /**
@@ -171,7 +169,7 @@ export class Map {
       }
     }
 
-    this.canvas = new jvm.SVGCanvasElement(this.container[0], this.width, this.height)
+    this.canvas = new CanvasElement(this.container[0], this.width, this.height)
     this.canvas.mode = 'svg'
 
     if (this.params.bindTouchEvents) {
