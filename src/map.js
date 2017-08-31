@@ -4,7 +4,7 @@ import Region from './region'
 import Marker from './marker'
 import DataSeries from './data-series'
 import Proj from './proj'
-import { CanvasElement } from './canvas'
+import Canvas from './canvas'
 
 export class Map {
   /**
@@ -169,8 +169,7 @@ export class Map {
       }
     }
 
-    this.canvas = new CanvasElement(this.container[0], this.width, this.height)
-    this.canvas.mode = 'svg'
+    this.canvas = new Canvas(this.container[0], this.width, this.height)
 
     if (this.params.bindTouchEvents) {
       if (('ontouchstart' in window) || (window.DocumentTouch && document instanceof DocumentTouch)) {
@@ -836,7 +835,7 @@ export class Map {
         labelStyle: jQuery.extend(true, {}, this.params.regionLabelStyle),
         canvas: this.canvas,
         labelsGroup: this.regionLabelsGroup,
-        label: this.canvas.mode != 'vml' ? (this.params.labels && this.params.labels.regions) : null
+        label: this.params.labels && this.params.labels.regions
       })
 
       jQuery(region.shape).bind('selected', function (e, isSelected) {
@@ -883,7 +882,7 @@ export class Map {
           group: this.markersGroup,
           canvas: this.canvas,
           labelsGroup: this.markerLabelsGroup,
-          label: this.canvas.mode != 'vml' ? (this.params.labels && this.params.labels.markers) : null
+          label: this.params.labels && this.params.labels.markers
         })
 
         jQuery(marker.shape).bind('selected', function (e, isSelected) {

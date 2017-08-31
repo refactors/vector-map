@@ -1,7 +1,7 @@
 import jQuery from 'jquery'
 import { whenImageLoaded, isImageUrl } from './helpers'
 
-export class Element {
+class Element {
   constructor (name, config) {
     /**
      * Underlying DOM element
@@ -91,7 +91,7 @@ export class Element {
   }
 }
 
-export class CanvasElement extends Element {
+export default class CanvasElement extends Element {
   constructor (container, width, height) {
     super('svg')
 
