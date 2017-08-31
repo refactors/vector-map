@@ -1,0 +1,26 @@
+{
+  "name": "vector-map",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/refactors/vector-map.git"
+  },
+  "keywords": [
+    "map",
+    "vector",
+    "js",
+    "svg"
+  ],
+  "dependencies": {
+    "jquery": "^3.2.1",
+    "jquery-mousewheel": "^3.1.13"
+  },
+  "author": "Refactors",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/refactors/vector-map/issues"
+  },
+  "homepage": "https://github.com/refactors/vector-map#readme"
+}
