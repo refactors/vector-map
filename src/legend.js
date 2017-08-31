@@ -16,7 +16,7 @@ export default class Legend {
     this.map = this.params.map
     this.series = this.params.series
     this.body = jQuery('<div/>')
-    this.body.addClass('jvectormap-legend')
+    this.body.addClass('vm-legend')
     if (this.params.cssClass) {
       this.body.addClass(this.params.cssClass)
     }
@@ -33,7 +33,7 @@ export default class Legend {
   render () {
     var ticks = this.series.scale.getTicks()
     var i
-    var inner = jQuery('<div/>').addClass('jvectormap-legend-inner')
+    var inner = jQuery('<div/>').addClass('vm-legend-inner')
     var tick
     var sample
     var label
@@ -41,14 +41,14 @@ export default class Legend {
     this.body.html('')
     if (this.params.title) {
       this.body.append(
-        jQuery('<div/>').addClass('jvectormap-legend-title').html(this.params.title)
+        jQuery('<div/>').addClass('vm-legend-title').html(this.params.title)
       )
     }
     this.body.append(inner)
 
     for (i = 0; i < ticks.length; i++) {
-      tick = jQuery('<div/>').addClass('jvectormap-legend-tick')
-      sample = jQuery('<div/>').addClass('jvectormap-legend-tick-sample')
+      tick = jQuery('<div/>').addClass('vm-legend-tick')
+      sample = jQuery('<div/>').addClass('vm-legend-tick-sample')
 
       switch (this.series.params.attribute) {
         case 'fill':
@@ -80,7 +80,7 @@ export default class Legend {
       if (this.params.labelRender) {
         label = this.params.labelRender(label)
       }
-      tick.append(jQuery('<div>' + label + ' </div>').addClass('jvectormap-legend-tick-text'))
+      tick.append(jQuery('<div>' + label + ' </div>').addClass('vm-legend-tick-text'))
       inner.append(tick)
     }
     inner.append(jQuery('<div/>').css('clear', 'both'))

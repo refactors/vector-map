@@ -138,7 +138,7 @@ export class Map {
     this.regionsColors = {}
     this.regionsData = {}
 
-    this.container = jQuery('<div>').addClass('jvectormap-container')
+    this.container = jQuery('<div>').addClass('vm-container')
     if (this.params.container) {
       this.params.container.append(this.container)
     }
@@ -165,7 +165,7 @@ export class Map {
 
     for (e in apiEvents) {
       if (this.params[e]) {
-        this.container.on(apiEvents[e] + '.jvectormap', this.params[e])
+        this.container.on(apiEvents[e] + '.vm', this.params[e])
       }
     }
 
@@ -206,8 +206,8 @@ export class Map {
       this.setSelectedMarkers(this.params.selectedMarkers)
     }
 
-    this.legendCntHorizontal = jQuery('<div/>').addClass('jvectormap-legend-cnt jvectormap-legend-cnt-h')
-    this.legendCntVertical = jQuery('<div/>').addClass('jvectormap-legend-cnt jvectormap-legend-cnt-v')
+    this.legendCntHorizontal = jQuery('<div/>').addClass('vm-legend-cnt vm-legend-cnt-h')
+    this.legendCntVertical = jQuery('<div/>').addClass('vm-legend-cnt vm-legend-cnt-v')
     this.container.append(this.legendCntHorizontal)
     this.container.append(this.legendCntVertical)
 
@@ -487,14 +487,14 @@ export class Map {
 
     /* Can not use common class selectors here because of the bug in jQuery
        SVG handling, use with caution. */
-    this.container.delegate("[class~='jvectormap-element']", 'mouseover mouseout', function (e) {
+    this.container.delegate("[class~='vm-element']", 'mouseover mouseout', function (e) {
       var baseVal = jQuery(this).attr('class').baseVal || jQuery(this).attr('class'),
-        type = baseVal.indexOf('jvectormap-region') === -1 ? 'marker' : 'region',
+        type = baseVal.indexOf('vm-region') === -1 ? 'marker' : 'region',
         code = type == 'region' ? jQuery(this).attr('data-code') : jQuery(this).attr('data-index'),
         element = type == 'region' ? map.regions[code].element : map.markers[code].element,
         tipText = type == 'region' ? map.mapData.paths[code].name : (map.markers[code].config.name || ''),
-        tipShowEvent = jQuery.Event(type + 'TipShow.jvectormap'),
-        overEvent = jQuery.Event(type + 'Over.jvectormap')
+        tipShowEvent = jQuery.Event(type + 'TipShow.vm'),
+        overEvent = jQuery.Event(type + 'Over.vm')
 
       if (e.type == 'mouseover') {
         map.container.trigger(overEvent, [code])
@@ -512,13 +512,13 @@ export class Map {
       } else {
         element.setHovered(false)
         map.tip.hide()
-        map.container.trigger(type + 'Out.jvectormap', [code])
+        map.container.trigger(type + 'Out.vm', [code])
       }
     })
 
     /* Can not use common class selectors here because of the bug in jQuery
        SVG handling, use with caution. */
-    this.container.delegate("[class~='jvectormap-element']", 'mousedown', function (e) {
+    this.container.delegate("[class~='vm-element']", 'mousedown', function (e) {
       pageX = e.pageX
       pageY = e.pageY
       mouseMoved = false
@@ -526,11 +526,11 @@ export class Map {
 
     /* Can not use common class selectors here because of the bug in jQuery
        SVG handling, use with caution. */
-    this.container.on('click', "[class~='jvectormap-element']", function (event) {
+    this.container.on('click', "[class~='vm-element']", function (event) {
       var baseVal = jQuery(this).attr('class').baseVal ? jQuery(this).attr('class').baseVal : jQuery(this).attr('class'),
-        type = baseVal.indexOf('jvectormap-region') === -1 ? 'marker' : 'region',
+        type = baseVal.indexOf('vm-region') === -1 ? 'marker' : 'region',
         code = type == 'region' ? jQuery(this).attr('data-code') : jQuery(this).attr('data-index'),
-        clickEvent = jQuery.Event(type + 'Click.jvectormap'),
+        clickEvent = jQuery.Event(type + 'Click.vm'),
         element = type == 'region' ? map.regions[code].element : map.markers[code].element
 
       if (!mouseMoved) {
@@ -550,13 +550,13 @@ export class Map {
   bindZoomButtons () {
     var map = this
 
-    jQuery('<div/>').addClass('jvectormap-zoomin').text('+').appendTo(this.container)
-    jQuery('<div/>').addClass('jvectormap-zoomout').html('&#x2212;').appendTo(this.container)
+    jQuery('<div/>').addClass('vm-zoomin').text('+').appendTo(this.container)
+    jQuery('<div/>').addClass('vm-zoomout').html('&#x2212;').appendTo(this.container)
 
-    this.container.find('.jvectormap-zoomin').click(function () {
+    this.container.find('.vm-zoomin').click(function () {
       map.setScale(map.scale * map.params.zoomStep, map.width / 2, map.height / 2, false, map.params.zoomAnimate)
     })
-    this.container.find('.jvectormap-zoomout').click(function () {
+    this.container.find('.vm-zoomout').click(function () {
       map.setScale(map.scale / map.params.zoomStep, map.width / 2, map.height / 2, false, map.params.zoomAnimate)
     })
   }
@@ -564,7 +564,7 @@ export class Map {
   createTip () {
     var map = this
 
-    this.tip = jQuery('<div/>').addClass('jvectormap-tip').appendTo(jQuery('body'))
+    this.tip = jQuery('<div/>').addClass('vm-tip').appendTo(jQuery('body'))
 
     this.container.mousemove(function (e) {
       var left = e.pageX - 15 - map.tipWidth,
@@ -585,7 +585,7 @@ export class Map {
   }
 
   setScale (scale, anchorX, anchorY, isCentered, animate) {
-    var viewportChangeEvent = jQuery.Event('zoom.jvectormap'),
+    var viewportChangeEvent = jQuery.Event('zoom.vm'),
       interval,
       that = this,
       i = 0,
@@ -839,7 +839,7 @@ export class Map {
       })
 
       jQuery(region.shape).bind('selected', function (e, isSelected) {
-        map.container.trigger('regionSelected.jvectormap', [jQuery(this.node).attr('data-code'), isSelected, map.getSelectedRegions()])
+        map.container.trigger('regionSelected.vm', [jQuery(this.node).attr('data-code'), isSelected, map.getSelectedRegions()])
       })
       this.regions[key] = {
         element: region,
@@ -886,7 +886,7 @@ export class Map {
         })
 
         jQuery(marker.shape).bind('selected', function (e, isSelected) {
-          map.container.trigger('markerSelected.jvectormap', [jQuery(this.node).attr('data-index'), isSelected, map.getSelectedMarkers()])
+          map.container.trigger('markerSelected.vm', [jQuery(this.node).attr('data-index'), isSelected, map.getSelectedMarkers()])
         })
         if (this.markers[i]) {
           this.removeMarkers([i])
