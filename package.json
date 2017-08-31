@@ -1,5 +1,5 @@
 {
-  "name": "vector-map",
+  "name": "@refactors/vector-map",
   "version": "1.0.0",
   "description": "",
   "main": "./src/map.js",
